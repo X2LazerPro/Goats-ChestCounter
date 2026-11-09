@@ -1,0 +1,1 @@
+{"name":"chest-counter","version":"2.0.0","main":"server.js","engines":{"node":">=18"},"scripts":{"start":"node server.js"},"dependencies":{"pg":"^8.13.0","ws":"^8.18.0"}}

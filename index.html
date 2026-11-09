@@ -1,0 +1,169 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chest Counter</title><link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#0e1116">
+<style>
+:root{--bg:#121214;--card:#1b1b1f;--ink:#f4f4f6;--mut:#8b8f9a;--line:#2a2a31;--y:#ffe135}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 "Trebuchet MS",system-ui,sans-serif;padding:env(safe-area-inset-top) 14px 48px}
+.wrap{max-width:560px;margin:0 auto}h1{font-size:28px;margin:18px 0 12px;letter-spacing:-.01em;animation:rise .5s both}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+input,button,select{font:inherit;color:var(--ink);background:#26262c;border:1px solid var(--line);border-radius:12px;padding:11px 13px;transition:transform .12s,background .15s}
+input{min-width:0;flex:1}button{cursor:pointer}button:active{transform:scale(.94)}button:hover{background:#30303a}
+.seg button{border-radius:0}.seg button:first-child{border-radius:12px 0 0 12px}.seg button:last-child{border-radius:0 12px 12px 0}
+.seg button.on{background:var(--y);color:#111;font-weight:700}
+.status{font-size:13px;color:var(--mut)}.status b{color:#37e0a1}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:18px 18px 16px;margin-bottom:14px;overflow:hidden;animation:rise .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*80ms)}
+.card::after{content:"";position:absolute;inset:0;border-radius:24px;box-shadow:inset 0 0 0 2px var(--c);opacity:0;pointer-events:none}
+.card.flash::after{animation:flash .6s ease-out}
+.head{display:flex;gap:14px;align-items:center}.head svg{flex:none;animation:bob 3.2s ease-in-out infinite}
+.title{font-size:22px;font-weight:800}.quest{color:var(--mut);font-size:14px}
+.numrow{display:flex;align-items:baseline;gap:12px;margin:10px 0 6px}
+.num{font-size:64px;font-weight:900;line-height:1;color:var(--c);font-variant-numeric:tabular-nums;display:inline-block}
+.num.bump{animation:bump .4s cubic-bezier(.2,1.6,.4,1)}
+.pen{padding:6px 8px;font-size:15px;background:none;border:0;color:var(--mut)}
+.past{color:var(--c);font-weight:700;font-size:14px}.you{color:var(--mut);font-size:14px;margin-left:auto}
+.track{position:relative;height:44px;margin:12px 10px 8px}
+.track .line,.track .fill{position:absolute;left:0;top:7px;height:6px;border-radius:6px}
+.track .line{right:0;background:#2f2f37}.track .fill{background:var(--c);width:0;transition:width .35s ease-out}
+.dot{position:absolute;top:2px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#3a3a44;transition:background .3s,transform .3s}
+.dot.on{background:var(--c);transform:scale(1.15)}
+.dot span{position:absolute;top:22px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;color:var(--ink)}
+.btns{display:flex;gap:10px;margin-top:6px}.btns button{height:56px;font-size:18px;font-weight:800;border-radius:16px}
+.btns .add{flex:1;background:var(--c);color:#111;border:0;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.btns .add:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.btns .sm{width:76px}
+.float{position:absolute;left:50%;top:70px;font-size:34px;font-weight:900;color:var(--c);pointer-events:none;animation:floaty .85s ease-out forwards}
+.float.neg{color:#ff6b6b}
+details{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px;margin-bottom:12px}summary{cursor:pointer;font-weight:700}
+.kb{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;margin-top:10px}.kb button{min-width:96px;font-family:monospace}.kb button.listen{background:var(--y);color:#000}
+.cur{display:grid;grid-template-columns:1fr 90px;gap:8px;margin-top:10px;align-items:center}
+.hint{font-size:12px;color:var(--mut);margin-top:8px}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+@keyframes flash{0%{opacity:.9}100%{opacity:0}}
+@keyframes floaty{0%{opacity:0;transform:translate(-50%,10px) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-70px) scale(1.2)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.fab{position:fixed;top:max(10px,env(safe-area-inset-top));right:10px;z-index:9;padding:6px 14px;font-size:12px;border-radius:20px;opacity:.8}
+body.simple .fab{opacity:.3}
+body.simple h1,body.simple .row,body.simple .status,body.simple details,body.simple .hint,body.simple .head>div,body.simple .dot span,body.simple .pen,body.simple .past{display:none}
+body.simple .wrap{padding-top:36px}body.simple .num{font-size:76px}body.simple .track{margin-bottom:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><div class="wrap">
+<h1>Chest Counter</h1>
+<div class="row"><input id="name" placeholder="Your name" maxlength="16"><input id="code" placeholder="Lobby code" maxlength="12" style="text-transform:uppercase">
+<button id="join">Join</button><button id="rand">New</button><button id="dc" style="display:none">Log in with Discord</button></div>
+<div class="status" id="status">Offline — counting solo</div>
+<div class="row" style="margin-top:12px">
+<div class="seg"><button id="scMe">Me</button><button id="scSq">Squad</button></div>
+<div class="seg"><button id="vSep">Separate</button><button id="vAll">Combined</button></div>
+<div class="seg"><button id="tRare">Rare</button><button id="tSpr">Sprite</button></div>
+<div class="seg"><button id="tWake">Screen on</button></div></div>
+<button id="fab" class="fab">Simple</button>
+<div id="cards"></div>
+<details><summary>Add current chests</summary>
+<div class="cur"><label>Regular</label><input type="number" min="0" id="cr"><label>Rare</label><input type="number" min="0" id="cx"><label>Sprite</label><input type="number" min="0" id="cs"></div>
+<div class="row" style="margin-top:10px"><button id="apply">Set my counts</button><button id="addin">Add to my counts</button><button id="reset">Reset</button></div></details>
+<details><summary>Keybinds</summary><div class="kb" id="kb"></div>
+<div class="hint">Click a key, then press the new one (Esc to cancel). Keys work while this tab/app is focused. On PC, keep it open on a second monitor or in a small window, or use the phone as your counter.</div></details>
+<div class="hint">Lobby: share the code with friends. Everyone joins the same server URL.</div>
+</div>
+<script>
+const $=id=>document.getElementById(id), LS='chestcounter.v1';
+const KINDS=[['r','Regular chests','--gold'],['rare','Rare chests','--rare'],['s','Sprite chests','--spr']];
+const ACTIONS=[['r+','Regular +'],['r-','Regular −'],['rare+','Rare +'],['rare-','Rare −'],['s+','Sprite +'],['s-','Sprite −'],['scope','Toggle Me/Squad'],['view','Toggle Separate/Combined']];
+const DEF={name:'',code:'',scope:'squad',wake:true,simple:false,pid:'',view:'sep',me:{r:0,rare:0,s:0},keys:{'r+':'1','r-':'2','rare+':'3','rare-':'4','s+':'5','s-':'6',scope:'q',view:'e'}};
+let S=Object.assign({},DEF,JSON.parse(localStorage.getItem(LS)||'{}')); S.keys=Object.assign({},DEF.keys,S.keys);
+let roster={},myId=null,ws=null,listening=null;
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
+function push(){save();if(ws&&ws.readyState===1)ws.send(JSON.stringify({t:'state',name:S.name,counts:S.me}));render()}
+function change(k,d){const o=S.me[k]|0;S.me[k]=Math.max(0,o+d);if(S.me[k]!==o){push();fx(k,S.me[k]-o)}}
+function totals(){const t={r:0,rare:0,s:0};
+ if(S.scope==='me'||!ws||ws.readyState!==1){KINDS.forEach(([k])=>t[k]=S.me[k]);return t}
+ Object.values(roster).forEach(p=>KINDS.forEach(([k])=>t[k]+=(p.counts&&p.counts[k])|0));return t}
+const GOALS={r:[25,100,250,500,1000],rare:[10,25,50,75,100],s:[10,25,50,75,100]};
+const TITLES={all:'All chests',r:'Regular chests',rare:'Rare chests',s:'Sprite chests'};
+const COL={all:'#ffe135',r:'#f6c343',rare:'#b66dff',s:'#37e0a1'};
+const chestSVG=c=>`<svg viewBox="0 0 64 64" width="58" height="58"><rect x="6" y="22" width="52" height="34" rx="7" fill="${c}"/><path d="M6 29a7 7 0 0 1 7-7h38a7 7 0 0 1 7 7v5H6z" fill="#fff" opacity=".3"/><rect x="6" y="35" width="52" height="3" fill="#111" opacity=".35"/><rect x="28" y="30" width="8" height="13" rx="2" fill="#111"/></svg>`;
+const els={};let built=false,raf=0;
+function fill(f){return f}
+function trackFill(v,g){if(v>=g[4])return 1;for(let i=0;i<5;i++)if(v<g[i]){if(i===0)return 0;return((i-1)+(v-g[i-1])/(g[i]-g[i-1]))/4}return 1}
+function buildCards(){
+ const box=$('cards');box.innerHTML='';
+ ['all','r','rare','s'].forEach((k,i)=>{
+  const g=GOALS[k],card=document.createElement('div');card.className='card';card.style.setProperty('--c',COL[k]);card.style.setProperty('--i',i);
+  card.innerHTML=`<div class="head">${chestSVG(COL[k])}<div><div class="title">${TITLES[k]}</div><div class="quest">${k==='all'?'Everything together':'Goal tracker to '+g[4].toLocaleString()}</div></div></div>
+  <div class="numrow"><span class="num">0</span>${k==='all'?'':'<button class="pen" title="Set number">&#9998;</button>'}<span class="past"></span><span class="you"></span></div>`+
+  (k==='all'?'':`<div class="track"><div class="line"></div><div class="fill"></div>${g.map((x,j)=>`<div class="dot" style="left:${j*25}%"><span>${x}</span></div>`).join('')}</div>
+  <div class="btns"><button class="sm minus">&minus;</button><button class="add">+ Add 1</button><button class="sm ten">+10</button></div>`);
+  box.appendChild(card);
+  const e=els[k]={k,card,num:card.querySelector('.num'),past:card.querySelector('.past'),you:card.querySelector('.you'),cur:0,tgt:0};
+  if(k!=='all'){e.fillEl=card.querySelector('.fill');e.dots=[...card.querySelectorAll('.dot')];
+   card.querySelector('.minus').onclick=()=>change(k,-1);card.querySelector('.add').onclick=()=>change(k,1);card.querySelector('.ten').onclick=()=>change(k,10);
+   card.querySelector('.pen').onclick=()=>{const v=prompt('Set your '+TITLES[k].toLowerCase()+' count',S.me[k]);if(v!==null){S.me[k]=Math.max(0,parseInt(v)||0);push()}}}
+ });built=true}
+function paintEl(e){e.num.textContent=Math.round(e.cur).toLocaleString();if(e.k==='all')return;const g=GOALS[e.k];
+ e.fillEl.style.width=(trackFill(e.cur,g)*100)+'%';e.dots.forEach((d,i)=>d.classList.toggle('on',e.cur>=g[i]))}
+function loop(){let go=false;for(const k in els){const e=els[k],d=e.tgt-e.cur;if(Math.abs(d)>.4){e.cur+=d*.18;go=true}else e.cur=e.tgt;paintEl(e)}raf=go?requestAnimationFrame(loop):0}
+function fx(k,d){if(!built)return;[k,'all'].forEach(key=>{const c=els[key].card,f=document.createElement('div');f.className='float'+(d<0?' neg':'');f.textContent=(d>0?'+':'')+d;f.style.marginLeft=(Math.random()*40-20)+'px';c.appendChild(f);setTimeout(()=>f.remove(),900)})}
+function render(){
+ if(!built)buildCards();
+ const t=totals(),live=S.scope==='sq'||S.scope==='squad';
+ const vis=k=>!(k==='rare'&&S.hideRare)&&!(k==='s'&&S.hideSprite);
+ const sum=o=>(vis('r')?o.r:0)+(vis('rare')?o.rare:0)+(vis('s')?o.s:0);
+ const tg={r:t.r,rare:t.rare,s:t.s,all:sum(t)};
+ for(const k in els){const e=els[k];
+  if(tg[k]!==e.tgt){e.tgt=tg[k];e.num.classList.remove('bump');void e.num.offsetWidth;e.num.classList.add('bump');e.card.classList.remove('flash');void e.card.offsetWidth;e.card.classList.add('flash')}
+  e.card.style.display=((k!=='all'&&S.view==='all')||!vis(k))?'none':'';
+  const mine=k==='all'?sum(S.me):S.me[k];
+  e.you.textContent=(S.scope==='squad'&&ws&&ws.readyState===1)?'You: '+mine:'';
+  if(k!=='all'){const over=e.tgt-GOALS[k][4];e.past.textContent=over>0?over.toLocaleString()+' past the goal':''}}
+ if(!raf)raf=requestAnimationFrame(loop);
+ $('scMe').className=S.scope==='me'?'on':'';$('scSq').className=S.scope==='squad'?'on':'';
+ $('dc').style.display=(DC||S.token)?'':'none';$('dc').textContent=S.token?'Discord: '+(S.dname||'linked')+' (log out)':'Log in with Discord';
+ document.body.classList.toggle('simple',!!S.simple);$('fab').textContent=S.simple?'Full':'Simple';$('tWake').className=S.wake?'on':'';if(!('wakeLock' in navigator))$('tWake').textContent='Screen on (n/a)';
+ $('tRare').className=S.hideRare?'':'on';$('tSpr').className=S.hideSprite?'':'on';$('vSep').className=S.view==='sep'?'on':'';$('vAll').className=S.view==='all'?'on':'';
+ const n=Object.keys(roster).length;
+ $('status').innerHTML=ws&&ws.readyState===1?`Lobby <b>${S.code}</b> - ${n} player${n===1?'':'s'} connected`:'Offline - counting solo';
+}
+function connect(){
+ const code=($('code').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(!code)return;
+ S.code=code;S.name=$('name').value.trim()||'Player';save();if(ws)ws.close();
+ try{ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host)}catch(e){$('status').textContent='Cannot connect (open via your server URL)';return}
+ if(!S.pid){S.pid=Math.random().toString(36).slice(2,12)+Date.now().toString(36);save()}
+ ws.onopen=()=>ws.send(JSON.stringify({t:'join',code,pid:S.pid,name:S.name,counts:S.me,token:S.token||''}));
+ ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.t==='joined'){myId=m.id;if(m.badToken){S.token='';S.dname=''}if(m.linked){S.dname=m.name;if(m.counts)S.me=m.counts}save();render()}if(m.t==='roster'){roster=m.players;render()}};
+ ws.onclose=()=>{roster={};render();if(S.code&&ws===cur)setTimeout(()=>ws===cur&&connect(),3000)};
+ const cur=ws;render();
+}
+$('join').onclick=connect;$('rand').onclick=()=>{$('code').value=Math.random().toString(36).slice(2,8).toUpperCase();connect()};
+$('scMe').onclick=()=>{S.scope='me';save();render()};$('scSq').onclick=()=>{S.scope='squad';save();render()};
+$('vSep').onclick=()=>{S.view='sep';save();render()};$('vAll').onclick=()=>{S.view='all';save();render()};$('fab').onclick=()=>{S.simple=!S.simple;save();render()};$('tWake').onclick=()=>{S.wake=!S.wake;save();S.wake?wake():unwake();render()};
+let DC=false;
+fetch('/api/status').then(r=>r.json()).then(j=>{DC=!!j.discord;render()}).catch(()=>{});
+if(location.hash.indexOf('#token=')===0){S.token=location.hash.slice(7);history.replaceState(null,'',location.pathname);save();if(S.code)connect()}
+$('dc').onclick=()=>{if(S.token){S.token='';S.dname='';save();if(S.code)connect();render()}else location.href='/auth/discord?mode=web'};
+let wl=null;
+async function wake(){try{if(S.wake&&'wakeLock' in navigator&&document.visibilityState==='visible'&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null})}}catch(e){wl=null}}
+function unwake(){try{wl&&wl.release()}catch(e){}wl=null}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){wake();if(S.code&&(!ws||ws.readyState!==1))connect()}});
+addEventListener('pointerdown',wake);addEventListener('online',()=>{if(S.code&&(!ws||ws.readyState!==1))connect()});
+$('tRare').onclick=()=>{S.hideRare=!S.hideRare;save();render()};$('tSpr').onclick=()=>{S.hideSprite=!S.hideSprite;save();render()};
+const cv=()=>({r:Math.max(0,+$('cr').value||0),rare:Math.max(0,+$('cx').value||0),s:Math.max(0,+$('cs').value||0)});
+$('apply').onclick=()=>{S.me=cv();push()};
+$('addin').onclick=()=>{const v=cv();KINDS.forEach(([k])=>S.me[k]+=v[k]);push()};
+$('reset').onclick=()=>{if(confirm('Reset your counts to 0?')){S.me={r:0,rare:0,s:0};push()}};
+$('name').oninput=e=>{S.name=e.target.value;save()};
+function drawKB(){const kb=$('kb');kb.innerHTML='';
+ ACTIONS.forEach(([a,l])=>{const s=document.createElement('span');s.textContent=l;const b=document.createElement('button');
+  b.textContent=listening===a?'press key…':(S.keys[a]||'—').toUpperCase();b.className=listening===a?'listen':'';
+  b.onclick=()=>{listening=a;drawKB()};kb.append(s,b)})}
+addEventListener('keydown',e=>{
+ if(listening){e.preventDefault();if(e.key!=='Escape')S.keys[listening]=e.key.length===1?e.key.toLowerCase():e.key;listening=null;save();drawKB();return}
+ if(/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+ const k=e.key.length===1?e.key.toLowerCase():e.key,a=Object.keys(S.keys).find(x=>S.keys[x]===k);if(!a)return;e.preventDefault();
+ if(a==='scope'){S.scope=S.scope==='me'?'squad':'me';save();render()}
+ else if(a==='view'){S.view=S.view==='sep'?'all':'sep';save();render()}
+ else change(a.replace(/[+-]$/,''),a.endsWith('+')?1:-1)});
+$('name').value=S.name;$('code').value=S.code;drawKB();render();
+if(S.code)connect();wake();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+</script></body></html>
